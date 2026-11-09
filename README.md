@@ -16,3 +16,7 @@ flowchart LR
 - **[Vocabulary → CONTEXT.md](CONTEXT.md)**: the terms the guide uses (Host, App, Edge Proxy, Shared Service…) and what each one means exactly.
 
 This is a design guide, not a copy-paste tutorial. It explains *what* to build and *why*, so it stays useful as tool versions change.
+
+## License
+
+© 2026 Sampsa Säävuori. This guide is licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). You may share and adapt it for any purpose, as long as you give credit. See [LICENSE](LICENSE).
