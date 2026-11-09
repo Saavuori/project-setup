@@ -4,24 +4,7 @@ An architecture guide for running a handful of independent web apps on a single 
 
 This is a description of the design and the reasoning behind it, not a command-by-command tutorial. The few config fragments are there to show the shape of things, not to be pasted as-is. Placeholders look like `<your-domain>`, `<github-user>` and `<host-ip>`. One invented example App, **notes**, served at `notes.<your-domain>`, is used throughout.
 
-The words **Host**, **App**, **Edge Proxy**, **Proxy Network**, **App Data Store**, **Shared Service** and **Updater** have exact meanings here. They are defined in [CONTEXT.md](../CONTEXT.md).
-
-## Contents
-
-1. [What you end up with](#1-what-you-end-up-with)
-2. [Architecture at a glance](#2-architecture-at-a-glance)
-3. [Vocabulary](#3-vocabulary)
-4. [The Host](#4-the-host)
-5. [Host baseline](#5-host-baseline)
-6. [Container runtime](#6-container-runtime)
-7. [The Edge Proxy](#7-the-edge-proxy)
-8. [Anatomy of an App](#8-anatomy-of-an-app)
-9. [Shared Services](#9-shared-services)
-10. [DNS](#10-dns)
-11. [Delivery pipeline](#11-delivery-pipeline)
-12. [Adding a new App](#12-adding-a-new-app)
-
----
+The words **Host**, **App**, **Edge Proxy**, **Proxy Network**, **App Data Store**, **Shared Service** and **Updater** have exact meanings here. They are defined in the [glossary](glossary.md).
 
 ## 1. What you end up with
 
@@ -35,35 +18,30 @@ Good fit: hobby and side projects, dashboards, small tools for a few hundred use
 ## 2. Architecture at a glance
 
 ```mermaid
-flowchart LR
+flowchart TB
   visitor([Visitor]) -->|"HTTPS"| sl
+  dev([You]) -->|"git push"| gha["GitHub Actions<br/>builds arm64 image"]
+  gha --> ghcr[("GitHub Container<br/>Registry")]
 
   subgraph oci["Oracle Cloud"]
-    sl["VCN security list<br/>allows 22, 80, 443"]
+    sl["VCN security list<br/>allows 22, 80, 443"] --> fw
     subgraph host["Host: Ampere A1, Oracle Linux"]
-      fw["Host firewall<br/>firewalld"]
+      fw["Host firewall<br/>firewalld"] --> proxy
       subgraph proxynet["Proxy Network"]
         proxy["Edge Proxy<br/>Caddy"]
         notes["App: notes"]
         other["App: another"]
       end
-      ads[("App Data Store<br/>of notes")]
-      ss[("Shared Service")]
-      upd["Updater<br/>scheduled job"]
+      proxy -->|"notes.your-domain"| notes
+      proxy -->|"other.your-domain"| other
+      notes --- ads[("App Data Store<br/>of notes")]
+      notes -.->|"internal network"| ss[("Shared Service")]
+      other -.->|"internal network"| ss
+      upd["Updater<br/>scheduled job"] -->|"redeploys"| notes
     end
   end
 
-  sl --> fw --> proxy
-  proxy -->|"notes.your-domain"| notes
-  proxy -->|"other.your-domain"| other
-  notes --- ads
-  notes -.->|"internal network"| ss
-  other -.->|"internal network"| ss
-
-  dev([You]) -->|"git push"| gha["GitHub Actions<br/>builds arm64 image"]
-  gha --> ghcr[("GitHub Container<br/>Registry")]
   upd -->|"polls and pulls"| ghcr
-  upd -->|"redeploys"| notes
 ```
 
 Read it in two directions:
@@ -73,7 +51,7 @@ Read it in two directions:
 
 ## 3. Vocabulary
 
-[CONTEXT.md](../CONTEXT.md) is the glossary. Two distinctions in it matter most when you read the rest:
+The [glossary](glossary.md) defines every term. Two distinctions in it matter most when you read the rest:
 
 - The **Edge Proxy** is shared infrastructure, not part of any App. If it's bundled inside an App's stack, redeploying that App takes every site offline.
 - An **App Data Store** belongs to one App. A **Shared Service** belongs to none. A database starts as an App Data Store and becomes a Shared Service only when a second App needs the *same data*.
@@ -115,7 +93,8 @@ Open nothing else. "The App is running but I can't reach it from outside" is alm
 
 On a user-defined network, Docker's built-in DNS lets containers find each other **by name**. That's how the Edge Proxy reaches `notes-web` without anyone publishing a port.
 
-> **Warning: published ports skip `firewalld`.** When a container publishes a port (`ports:` in Compose), Docker writes its own packet-filtering rules, which take effect *before* the Host firewall's zone rules are checked. A published port is reachable from anywhere Oracle's security list allows, whatever `firewalld` says. So the rule is: **only the Edge Proxy publishes ports (80 and 443).** Nothing else has a `ports:` section. If you need to reach a database from your laptop, publish it on `127.0.0.1` only and connect through an SSH tunnel.
+!!! warning "Published ports skip `firewalld`"
+    When a container publishes a port (`ports:` in Compose), Docker writes its own packet-filtering rules, which take effect *before* the Host firewall's zone rules are checked. A published port is reachable from anywhere Oracle's security list allows, whatever `firewalld` says. So the rule is: **only the Edge Proxy publishes ports (80 and 443).** Nothing else has a `ports:` section. If you need to reach a database from your laptop, publish it on `127.0.0.1` only and connect through an SSH tunnel.
 
 ## 7. The Edge Proxy
 

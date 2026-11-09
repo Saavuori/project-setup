@@ -1,0 +1,43 @@
+/* Home page hero */
+.hero {
+  padding: 2.5rem 0 1.5rem;
+  text-align: center;
+}
+.hero h1 {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+  color: var(--md-default-fg-color);
+}
+.hero-lede {
+  max-width: 40rem;
+  margin: 0 auto 1.6rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--md-default-fg-color--light);
+}
+.hero .md-button {
+  margin: 0.25rem;
+}
+
+/* Diagrams: centred, never wider than the column */
+.mermaid {
+  text-align: center;
+}
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Tables fill the column */
+.md-typeset table:not([class]) {
+  display: table;
+  width: 100%;
+}
+
+@media screen and (max-width: 44.9375em) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+}

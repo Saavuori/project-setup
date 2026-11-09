@@ -4,6 +4,7 @@ A single Oracle Cloud virtual machine that hosts several independent web apps be
 
 ## Language
 
+<!-- --8<-- [start:terms] -->
 ### Where things run
 
 **Host**:
@@ -37,3 +38,4 @@ _Avoid_: Backend, infra service, DB stack
 **Updater**:
 The scheduled job on the Host that notices a newer image for an App in the registry and redeploys that App. Deployments are pulled by the Host, never pushed to it.
 _Avoid_: Deployer, watcher, CD agent
+<!-- --8<-- [end:terms] -->

@@ -12,6 +12,8 @@ flowchart LR
   end
 ```
 
+**📖 Read it as a website: <https://saavuori.github.io/project-setup/>**
+
 - **[The guide → docs/guide.md](docs/guide.md)**: the architecture, the reasoning behind each choice, and the end-to-end path for adding an app.
 - **[Vocabulary → CONTEXT.md](CONTEXT.md)**: the terms the guide uses (Host, App, Edge Proxy, Shared Service…) and what each one means exactly.
 
